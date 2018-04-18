@@ -72,26 +72,27 @@ class Timeslot
   }
 
   /**
-   * @param structure     Options: by_day,
+   * @param string
+   *
    * @return object
    */
-  public function getAvailableSlots($structure) {
+  public function getAvailableSlots($singleDay = false) {
     $slots = $this->slots;
-    if ( $structure == 'by_day') {
-      $daysOfTheWeek = getDaysOfTheWeek();
-      $slots_by_day = new stdClass();
-      foreach ($slots as $slot) {
-        foreach($slot->days as $day) {
-          $slotObject = new Timeslot;
-          $slotObject->setDay($day);
-          $slotObject->setBeginTime($slot->beginTime);
-          $slotObject->setEndTime($slot->endTime);
-          $slots_by_day->{$day}[] = $slotObject;
-        }
+    $result;
+    $daysOfTheWeek = getDaysOfTheWeek();
+    $slotsByDay = new stdClass();
+    foreach ($slots as $slot) {
+      foreach($slot->days as $day) {
+        $slotObject = new Timeslot;
+        $slotObject->setDay($day);
+        $slotObject->setBeginTime($slot->beginTime);
+        $slotObject->setEndTime($slot->endTime);
+        $slotsByDay->{$day}[] = $slotObject;
       }
-      $slots = $slots_by_day;
     }
-    return $slots;
+    $result = $slotsByDay;
+    if ($singleDay != false) $result = $slotsByDay->{$day};
+    return $result;
   }
   /**
    * @return boolean
