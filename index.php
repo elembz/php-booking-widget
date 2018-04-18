@@ -23,18 +23,38 @@
   ?>
   <section class="section">
     <div class="container">
-      <?php if (isset($_POST['day']) &&
-                isset($_POST['time']) &&
-                isset($_POST['name']) &&
-                isset($_POST['email'])): ?>
-      <article class="message">
+      <?php
+      if (isset($_POST['day']) &&
+          isset($_POST['time']) &&
+          isset($_POST['name']) &&
+          isset($_POST['email'])):
+
+        require_once 'booking.php';
+        require_once 'timeslot.php';
+        $error = true;
+        $timeslot = new Timeslot;
+        $timeslot->setDay($_POST['day']);
+        $timeslot->setBeginTime(substr($_POST['time'], 0, 4));
+        $timeslot->setEndTime(substr($_POST['time'], 4, 8));
+        $booking = new Booking;
+        $booking->setName($_POST['name']);
+        $booking->setEmail($_POST['email']);
+        $booking->setTimeslot($timeslot);
+        if ($booking->make() > 0) {
+          $error = false;
+        }
+      ?>
+      <article class="message <?php if ($error) echo 'is-danger'; ?>">
         <div class="message-header">
-          <p>Thank you</p>
+          <p><?php echo !$error ? 'Thank you' : 'sorry'; ?></p>
         </div>
         <div class="message-body">
-          A booking was made for <?php echo $_POST['name']; ?>
-          on <?php echo $days[$_POST['day']]; ?>
-          at <?php echo substr($_POST['time'], 0, 2); ?>h.
+          <?php if ($error) echo 'Something went wrong.';?>
+          <?php if (!$error): ?>
+          A booking was made for <?php echo $booking->name; ?>
+          on <?php echo $days[$booking->timeslot->day]; ?>
+          at <?php echo substr($booking->timeslot->beginTime, 0, 2); ?>h.
+          <?php endif; ?>
         </div>
 </article>
       <?php endif; ?>
@@ -44,7 +64,7 @@
           <div class="control">
             <div class="select">
               <select name="day">
-                <option value="" disabled selected>Select day</option>
+                <option value="" disabled selected>Select a day</option>
                 <?php foreach ($days as $day => $dayName): ?>
                 <option value="<?php echo $day; ?>"><?php echo $dayName; ?></option>
                 <?php endforeach; ?>
