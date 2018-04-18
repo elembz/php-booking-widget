@@ -17,27 +17,77 @@
       </div>
     </div>
   </section>
+  <?php
+  require_once 'helpers.php';
+  $days = getDaysOfTheWeek();
+  ?>
   <section class="section">
     <div class="container">
-      <div class="columns">
-        <?php require_once 'timeslot.php';
-        require_once 'helpers.php';
-        $timeslot = new Timeslot;
-        $available_time_slots = $timeslot->getAvailableSlots('by_day');
-        $days = getDaysOfTheWeek();
-        ?>
-        <?php foreach($days as $day => $dayName) { ?>
-        <div class="column content">
-          <h3><?php echo $dayName; ?></h3>
-          <?php foreach ($available_time_slots->{$day} as $slot) { ?>
-            <div class="field">
-              <a class="button" href="">
-                <?php echo substr(strval($slot->beginTime), 0, 2) . 'h—' . substr(strval($slot->endTime), 0, 2) . 'h'; ?>
-              </a>
+      <?php if (isset($_POST['day']) &&
+                isset($_POST['time']) &&
+                isset($_POST['name']) &&
+                isset($_POST['email'])): ?>
+      <article class="message">
+        <div class="message-header">
+          <p>Thank you</p>
+        </div>
+        <div class="message-body">
+          A booking was made for <?php echo $_POST['name']; ?>
+          on <?php echo $days[$_POST['day']]; ?>
+          at <?php echo substr($_POST['time'], 0, 2); ?>h.
+        </div>
+</article>
+      <?php endif; ?>
+      <form action="" method="post">
+        <div class="field">
+          <label for="day" class="label">Day</label>
+          <div class="control">
+            <div class="select">
+              <select name="day">
+                <option value="" disabled selected>Select day</option>
+                <?php foreach ($days as $day => $dayName): ?>
+                <option value="<?php echo $day; ?>"><?php echo $dayName; ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
-          <?php } ?>
-      </div>
-      <?php } ?>
+          </div>
+        </div>
+        <div class="field">
+          <label for="day" class="label">Time</label>
+          <div class="control">
+            <div class="select">
+              <select name="time">
+                <option value="" disabled selected>Select time</option>
+                <?php
+                require_once 'timeslot.php';
+                $timeslot = new Timeslot;
+                foreach ($timeslot->getAvailableSlots('monday') as $slot): ?>
+                <option value="<?php echo $slot->beginTime . $slot->endTime; ?>">
+                  <?php echo substr(strval($slot->beginTime), 0, 2) . 'h—' . substr(strval($slot->endTime), 0, 2) . 'h'; ?>
+                </option>
+              <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="name" class="label">Name</label>
+          <div class="control">
+            <input name="name" class="input" type="text">
+          </div>
+        </div>
+        <div class="field">
+          <label for="email" class="label">Email</label>
+          <div class="control">
+            <input name="email" class="input" type="email">
+          </div>
+        </div>
+        <div class="field">
+          <div class="control">
+            <button class="button is-primary" type="submit">Submit</button>
+          </div>
+        </div>
+      </form>
     </div>
   </section>
 </body>
