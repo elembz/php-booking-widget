@@ -21,14 +21,15 @@
     <div class="container">
       <div class="columns">
         <?php require_once 'timeslot.php';
+        require_once 'helpers.php';
         $timeslot = new Timeslot;
         $available_time_slots = $timeslot->getAvailableSlots('by_day');
-        $days = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+        $days = getDaysOfTheWeek();
         ?>
         <?php foreach($days as $day => $dayName) { ?>
         <div class="column content">
           <h3><?php echo $dayName; ?></h3>
-          <?php foreach ($available_time_slots[$day] as $slot) { ?>
+          <?php foreach ($available_time_slots->{$day} as $slot) { ?>
             <div class="field">
               <a class="button" href="">
                 <?php echo substr(strval($slot->beginTime), 0, 2) . 'h—' . substr(strval($slot->endTime), 0, 2) . 'h'; ?>

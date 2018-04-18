@@ -25,6 +25,7 @@ class Timeslot
   public $endTime;
 
   public function __construct() {
+    require_once('helpers.php');
     $this->slots = json_decode(file_get_contents('slots.json'));
   }
 
@@ -72,26 +73,20 @@ class Timeslot
 
   /**
    * @param structure     Options: by_day,
-   * @return object // fix this
+   * @return object
    */
   public function getAvailableSlots($structure) {
     $slots = $this->slots;
     if ( $structure == 'by_day') {
-      $slots_by_day = array(
-        0 => array(),
-        2 => array(),
-        3 => array(),
-        4 => array(),
-        5 => array(),
-        6 => array()
-      );
+      $daysOfTheWeek = getDaysOfTheWeek();
+      $slots_by_day = new stdClass();
       foreach ($slots as $slot) {
         foreach($slot->days as $day) {
           $slotObject = new Timeslot;
           $slotObject->setDay($day);
           $slotObject->setBeginTime($slot->beginTime);
           $slotObject->setEndTime($slot->endTime);
-          $slots_by_day[$day][] = $slotObject;
+          $slots_by_day->{$day}[] = $slotObject;
         }
       }
       $slots = $slots_by_day;
