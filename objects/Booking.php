@@ -95,7 +95,8 @@ class Booking {
         'email' => $this->getEmail(),
         'day' => $this->timeslot->getDay(),
         'beginTime' => $this->timeslot->getBeginTime(),
-        'endTime'=> $this->timeslot->getEndTime()
+        'endTime'=> $this->timeslot->getEndTime(),
+        'token' => bin2hex(random_bytes(70))
       ]);
       $this->id = $this->client->database->id();
       $result = $this->id;
