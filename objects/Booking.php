@@ -83,6 +83,7 @@ class Booking {
    * @return string
    */
   public function make() {
+    if ($this->exists(['beginTime' => $this->beginTime, 'endTime' => $this->endTime]));
     $this->client->database->insert('bookings', [
       'name' => $this->name,
       'email' => $this->email,
@@ -116,10 +117,19 @@ class Booking {
    */
   public function get($id) {
     $data = $this->client->database->get('bookings', [
-      'name','email','day','beginTime','endTime'
+      'id', 'name','email','day','beginTime','endTime'
     ],[
       'id' => $id
     ]);
+    if ($data !== false) {
+      $this->id = $data['id'];
+      $this->name = $data['name'];
+      $this->email = $data['email'];
+      $this->day = $data['day'];
+      $this->beginTime = $data['beginTime'];
+      $this->endTime = $data['endTime'];
+      return true;
+    }
     return $data;
   }
 } ?>
