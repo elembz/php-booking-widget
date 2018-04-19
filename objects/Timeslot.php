@@ -5,10 +5,12 @@
  */
 class Timeslot
 {
+
   /**
-  * @var object
+   * @var object
    */
-  public $slots;
+  private $client;
+
   /**
    * @var int
    */
@@ -24,9 +26,11 @@ class Timeslot
    */
   public $endTime;
 
-  public function __construct() {
-    require_once('helpers.php');
-    $this->slots = json_decode(file_get_contents('slots.json'));
+  /**
+   * @param object
+   */
+  public function __construct($client) {
+    $this->client = $client;
   }
 
   /**
@@ -72,34 +76,11 @@ class Timeslot
   }
 
   /**
-   * @param string
-   *
-   * @return object
-   */
-  public function getAvailableSlots($singleDay = false) {
-    $slots = $this->slots;
-    $result;
-    $daysOfTheWeek = getDaysOfTheWeek();
-    $slotsByDay = new stdClass();
-    foreach ($slots as $slot) {
-      foreach($slot->days as $day) {
-        $slotObject = new Timeslot;
-        $slotObject->setDay($day);
-        $slotObject->setBeginTime($slot->beginTime);
-        $slotObject->setEndTime($slot->endTime);
-        $slotsByDay->{$day}[] = $slotObject;
-      }
-    }
-    $result = $slotsByDay;
-    if ($singleDay != false) $result = $slotsByDay->{$day};
-    return $result;
-  }
-  /**
    * @return boolean
    */
   public function isAvailable() {
     $result = false;
-    $slots = $this->slots;
+    $slots = $this->client->slots;
     $day = $this->getDay();
     $beginTime = $this->getBeginTime();
     $endTime = $this->getEndTime();

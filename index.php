@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>The Maker Store @ Lightspeed</title>
+  <title>Booking Widget</title>
   <!-- CSS -->
   <link rel="stylesheet" href="assets/css/vendor/bulma.min.css" />
 </head>
@@ -20,6 +20,9 @@
   <?php
   require_once 'helpers.php';
   $days = getDaysOfTheWeek();
+
+  require_once 'objects/BookingWidget.php';
+  $app = new BookingWidget(__DIR__, 'bookings.db', json_decode(file_get_contents(__DIR__ . '/config/slots.json'), true));
   ?>
   <section class="section">
     <div class="container">
@@ -29,32 +32,35 @@
           isset($_POST['name']) &&
           isset($_POST['email'])):
 
-        require_once 'booking.php';
-        require_once 'timeslot.php';
         $error = true;
-        $timeslot = new Timeslot;
+        $message = 'Something went wrong';
+        $timeslot = $app->timeslot;
         $timeslot->setDay($_POST['day']);
         $timeslot->setBeginTime(substr($_POST['time'], 0, 4));
         $timeslot->setEndTime(substr($_POST['time'], 4, 8));
-        $booking = new Booking;
+        $booking = $app->booking;
         $booking->setName($_POST['name']);
         $booking->setEmail($_POST['email']);
         $booking->setTimeslot($timeslot);
-        if ($booking->make() > 0) {
-          $error = false;
+
+        if ($booking->exists()) {
+          $error = true;
+          $message = 'It seems you have already made a booking. If you would like to change or cancel your booking, please click on the link in your email.';
         }
+        else if ($booking->make() > 0) {
+          $error = false;
+          $message .= 'A booking was made for ' . $booking->getName();
+          $message .= ' on ' . $days[$booking->timeslot->getDay()];
+          $message .= ' at ' . substr($booking->timeslot->getBeginTime(), 0, 2);
+        }
+
       ?>
       <article class="message <?php if ($error) echo 'is-danger'; ?>">
         <div class="message-header">
-          <p><?php echo !$error ? 'Thank you' : 'sorry'; ?></p>
+          <p><?php echo !$error ? 'Thank you' : 'Oops'; ?></p>
         </div>
         <div class="message-body">
-          <?php if ($error) echo 'Something went wrong.';?>
-          <?php if (!$error): ?>
-          A booking was made for <?php echo $booking->name; ?>
-          on <?php echo $days[$booking->timeslot->day]; ?>
-          at <?php echo substr($booking->timeslot->beginTime, 0, 2); ?>h.
-          <?php endif; ?>
+          <?php echo $message; ?>
         </div>
 </article>
       <?php endif; ?>
@@ -79,9 +85,7 @@
               <select name="time">
                 <option value="" disabled selected>Select time</option>
                 <?php
-                require_once 'timeslot.php';
-                $timeslot = new Timeslot;
-                foreach ($timeslot->getAvailableSlots('monday') as $slot): ?>
+                foreach ($app->getSlots('monday') as $slot): ?>
                 <option value="<?php echo $slot->beginTime . $slot->endTime; ?>">
                   <?php echo substr(strval($slot->beginTime), 0, 2) . 'h—' . substr(strval($slot->endTime), 0, 2) . 'h'; ?>
                 </option>

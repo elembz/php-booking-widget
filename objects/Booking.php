@@ -8,7 +8,7 @@ class Booking {
   /**
    * @var object
    */
-  private $database;
+  private $client;
 
   /**
    * @var integer
@@ -30,10 +30,11 @@ class Booking {
    */
   public $timeslot;
 
-  public function __construct() {
-    require_once('database.php');
-    require_once('timeslot.php');
-    $this->database = $database;
+  /**
+   * @param object
+   */
+  public function __construct($client) {
+    $this->client = $client;
   }
 
   /**
@@ -82,14 +83,43 @@ class Booking {
    * @return string
    */
   public function make() {
-    $this->database->insert('bookings', [
+    $this->client->database->insert('bookings', [
       'name' => $this->name,
       'email' => $this->email,
       'day' => $this->timeslot->day,
       'beginTime' => $this->timeslot->beginTime,
       'endTime'=> $this->timeslot->endTime
     ]);
-    $this->id = $this->database->id();
+    $this->id = $this->client->database->id();
     return $this->id;
+  }
+
+  /**
+   * @param array
+   *
+   * @return boolean
+   */
+  public function exists($details = false) {
+    if (!$details) $details = ['email' => $this->getEmail()];
+    $data = $this->client->database->get('bookings', [
+      'name','email','day','beginTime','endTime'
+    ], $details);
+    $result = $data;
+    if ($data !== false) $result = true;
+    return $result;
+  }
+
+  /**
+   * @param integer
+   *
+   * @return array
+   */
+  public function get($id) {
+    $data = $this->client->database->get('bookings', [
+      'name','email','day','beginTime','endTime'
+    ],[
+      'id' => $id
+    ]);
+    return $data;
   }
 } ?>
