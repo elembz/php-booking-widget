@@ -84,7 +84,12 @@ class Booking {
    */
   public function make() {
     $result = 0;
-    if (!$this->exists(['day' => $this->timeslot->getDay(), 'beginTime' => $this->timeslot->getBeginTime(), 'endTime' => $this->timeslot->getEndTime()])) {
+    if (!$this->validate()) return false;
+    if (!$this->exists([
+      'day' => $this->timeslot->getDay(),
+      'beginTime' => $this->timeslot->getBeginTime(),
+      'endTime' => $this->timeslot->getEndTime()
+    ])) {
       $this->client->database->insert('bookings', [
         'name' => $this->getName(),
         'email' => $this->getEmail(),
@@ -96,7 +101,34 @@ class Booking {
       $result = $this->id;
     }
     return $result;
+  }
 
+  /**
+   * @return boolean
+   */
+  public function validate() {
+    if (!is_int($this->timeslot->day) || $this->timeslot->day > 6 || $this->timeslot->day < 0) return 'false';
+    elseif (
+      !is_numeric($this->timeslot->beginTime) ||
+      strlen($this->timeslot->endTime) != 4 ||
+      intval($this->timeslot->beginTime) > 2400 ||
+      intval($this->timeslot->beginTime) < 0) {
+        return false;
+      }
+    elseif (
+      !is_numeric($this->timeslot->endTime) ||
+      strlen($this->timeslot->endTime) != 4 ||
+      $this->timeslot->endTime > 2400 ||
+      $this->timeslot->endTime < 0) {
+        return false;
+      }
+    elseif (strlen($this->name) <= 0) {
+      return false;
+    }
+    elseif (strlen($this->email) <= 0) {
+      return false;
+    }
+    else return true;
   }
 
   /**
@@ -126,12 +158,12 @@ class Booking {
       'id' => $id
     ]);
     if ($data !== false) {
-      $this->id = $data['id'];
+      $this->id = intval($data['id']);
       $this->name = $data['name'];
       $this->email = $data['email'];
-      $this->day = $data['day'];
-      $this->beginTime = $data['beginTime'];
-      $this->endTime = $data['endTime'];
+      $this->timeslot->day = intval($data['day']);
+      $this->timeslot->beginTime = intval($data['beginTime']);
+      $this->timeslot->endTime = intval($data['endTime']);
       return true;
     }
     return $data;

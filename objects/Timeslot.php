@@ -37,14 +37,14 @@ class Timeslot
    * @param string
    */
   public function setDay($day) {
-    $this->day = $day;
+    $this->day = intval($day);
   }
 
   /**
    * @return string
    */
   public function getDay() {
-    return $this->day;
+    return intval($this->day);
   }
 
   /**
