@@ -27,18 +27,20 @@
   <section class="section">
     <div class="container">
       <?php
-      if (isset($_POST['day']) &&
-          isset($_POST['time']) &&
-          isset($_POST['name']) &&
-          isset($_POST['email'])):
+      if (isset($_POST['day']) && strlen($_POST['day']) > 0 &&
+          isset($_POST['time']) && strlen($_POST['time']) > 0 &&
+          isset($_POST['name']) && strlen($_POST['name']) > 0 &&
+          isset($_POST['email']) && strlen($_POST['email']) > 0):
 
         $error = true;
         $message = 'Something went wrong';
-        $timeslot = $app->timeslot;
+
+        $timeslot = $app->timeslot();
         $timeslot->setDay($_POST['day']);
         $timeslot->setBeginTime(substr($_POST['time'], 0, 4));
         $timeslot->setEndTime(substr($_POST['time'], 4, 8));
-        $booking = $app->booking;
+
+        $booking = $app->booking();
         $booking->setName($_POST['name']);
         $booking->setEmail($_POST['email']);
         $booking->setTimeslot($timeslot);
@@ -49,9 +51,9 @@
         }
         else if ($booking->make() > 0) {
           $error = false;
-          $message .= 'A booking was made for ' . $booking->getName();
+          $message = 'A booking was made for ' . $booking->getName();
           $message .= ' on ' . $days[$booking->timeslot->getDay()];
-          $message .= ' at ' . substr($booking->timeslot->getBeginTime(), 0, 2);
+          $message .= ' at ' . substr($booking->timeslot->getBeginTime(), 0, 2) . 'h';
         }
 
       ?>
@@ -62,22 +64,25 @@
         <div class="message-body">
           <?php echo $message; ?>
         </div>
-</article>
+      </article>
       <?php endif; ?>
-      <form action="" method="post">
+      <form id="form" action="" method="post">
         <div class="field">
           <label for="day" class="label">Day</label>
           <div class="control">
             <div class="select">
-              <select name="day">
-                <option value="" disabled selected>Select a day</option>
+              <select name="day" onchange="document.getElementById('form').submit()">
+                <option value="" disabled<?php if (!isset($_POST['day'])) echo ' selected'; ?>>Select a day</option>
                 <?php foreach ($days as $day => $dayName): ?>
-                <option value="<?php echo $day; ?>"><?php echo $dayName; ?></option>
+                <option value="<?php echo $day; ?>" <?php if (isset($_POST['day']) && $_POST['day'] == $day) echo ' selected'; ?>>
+                  <?php echo $dayName; ?>
+                </option>
                 <?php endforeach; ?>
               </select>
             </div>
           </div>
         </div>
+        <?php if (isset($_POST['day'])): ?>
         <div class="field">
           <label for="day" class="label">Time</label>
           <div class="control">
@@ -85,9 +90,9 @@
               <select name="time">
                 <option value="" disabled selected>Select time</option>
                 <?php
-                foreach ($app->getSlots('monday') as $slot): ?>
-                <option value="<?php echo $slot->beginTime . $slot->endTime; ?>">
-                  <?php echo substr(strval($slot->beginTime), 0, 2) . 'h—' . substr(strval($slot->endTime), 0, 2) . 'h'; ?>
+                foreach ($app->getSlots($_POST['day']) as $slotData): ?>
+                <option value="<?php echo $slotData['slot']->beginTime . $slotData['slot']->endTime; ?>" <?php if (!$slotData['availability']) echo ' disabled'; ?>>
+                  <?php echo substr(strval($slotData['slot']->beginTime), 0, 2) . 'h—' . substr(strval($slotData['slot']->endTime), 0, 2) . 'h'; ?>
                 </option>
               <?php endforeach; ?>
               </select>
@@ -110,6 +115,7 @@
           <div class="control">
             <button class="button is-primary" type="submit">Submit</button>
           </div>
+          <?php endif; ?>
         </div>
       </form>
     </div>

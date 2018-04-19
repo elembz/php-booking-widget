@@ -83,16 +83,20 @@ class Booking {
    * @return string
    */
   public function make() {
-    if ($this->exists(['beginTime' => $this->beginTime, 'endTime' => $this->endTime]));
-    $this->client->database->insert('bookings', [
-      'name' => $this->name,
-      'email' => $this->email,
-      'day' => $this->timeslot->day,
-      'beginTime' => $this->timeslot->beginTime,
-      'endTime'=> $this->timeslot->endTime
-    ]);
-    $this->id = $this->client->database->id();
-    return $this->id;
+    $result = 0;
+    if (!$this->exists(['day' => $this->timeslot->getDay(), 'beginTime' => $this->timeslot->getBeginTime(), 'endTime' => $this->timeslot->getEndTime()])) {
+      $this->client->database->insert('bookings', [
+        'name' => $this->getName(),
+        'email' => $this->getEmail(),
+        'day' => $this->timeslot->getDay(),
+        'beginTime' => $this->timeslot->getBeginTime(),
+        'endTime'=> $this->timeslot->getEndTime()
+      ]);
+      $this->id = $this->client->database->id();
+      $result = $this->id;
+    }
+    return $result;
+
   }
 
   /**
@@ -130,6 +134,16 @@ class Booking {
       $this->endTime = $data['endTime'];
       return true;
     }
+    return $data;
+  }
+
+  /**
+   * @param integer
+   *
+   * @return array
+   */
+  public function getAll($fields = '*') {
+    $data = $this->client->database->select('bookings', $fields);
     return $data;
   }
 } ?>

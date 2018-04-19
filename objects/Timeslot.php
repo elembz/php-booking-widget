@@ -81,16 +81,21 @@ class Timeslot
   public function isAvailable() {
     $result = false;
     $slots = $this->client->slots;
+    $bookings = $this->client->booking()->getAll(['beginTime','endTime']);
     $day = $this->getDay();
     $beginTime = $this->getBeginTime();
     $endTime = $this->getEndTime();
+
     foreach($slots as $slot) {
-      if ( array_search( $day, $slot->days ) !== false &&
+      if (
+        array_search( $day, $slot['days'] ) !== false &&
+        array_search( [$beginTime, $endTime], $bookings) == false &&
         $slot->beginTime == $beginTime &&
         $slot->endTime == $endTime ) {
           $result = true;
       }
     }
+
     return $result;
   }
 

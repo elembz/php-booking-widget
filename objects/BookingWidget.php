@@ -46,10 +46,24 @@
      require_once($this->sitePath . '/objects/Booking.php');
 
      $this->database = $database;
-     $this->timeslot = new Timeslot($this);
-     $this->booking = new Booking($this);
 
      require_once(__DIR__ . '/../helpers.php');
+   }
+
+   /**
+    * @return Timeslot
+    */
+   function timeslot() {
+     $timeslot = new Timeslot($this);
+     return $timeslot;
+   }
+
+   /**
+    * @return Booking
+    */
+   function booking() {
+     $booking = new Booking($this);
+     return $booking;
    }
 
    /**
@@ -58,18 +72,19 @@
     * @return array
     */
    public function getSlots($singleDay = false) {
-     $slots = $this->slots;
      $result;
-     $daysOfTheWeek = getDaysOfTheWeek();
+     $slots = $this->slots;
+     $bookings = $this->booking()->getAll(['day', 'beginTime','endTime']);
      $slotsByDay = array();
-     $slotObject = new Timeslot($this);
+     $client = $this;
      foreach ($slots as $slot) {
        foreach($slot['days'] as $day) {
+         $availability = array_search( ['day' => $day, 'beginTime' => $slot['beginTime'], 'endTime' => $slot['endTime']], $bookings) === false;
+         $slotObject = $client->timeslot();
          $slotObject->setDay($day);
          $slotObject->setBeginTime($slot['beginTime']);
          $slotObject->setEndTime($slot['endTime']);
-         $slotsByDay[strtolower($daysOfTheWeek[$day])][] = $slotObject;
-
+         $slotsByDay[$day][] = array('slot' => $slotObject, 'availability' => $availability);
        }
      }
      $result = $slotsByDay;
