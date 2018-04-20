@@ -30,6 +30,8 @@
       include 'partials/message.php';
       if (isset($_GET['edit']) && isset($_GET['token']) && isset($_GET['id'])) {
         include 'partials/edit.php';
+      } else if (isset($_GET['delete']) && isset($_GET['token']) && isset($_GET['id'])) {
+        include 'partials/delete.php';
       } else {
           include 'partials/create.php';
       }

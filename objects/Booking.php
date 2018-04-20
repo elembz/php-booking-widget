@@ -214,6 +214,24 @@ class Booking {
   }
 
   /**
+   * @return object
+   */
+  public function cancel() {
+    $response = $this->client->response();
+    $this->client->database->delete('bookings', [
+      'id' => $this->id
+    ]);
+    if (array_filter($this->client->database->error())) {
+      $response->setSucces(true);
+      $response->setMessage('Booking was succesfully cancelled.');
+    } else {
+      $response->setSucces(false);
+      $response->setMessage('Something went wrong');
+    }
+    return $response;
+  }
+
+  /**
    * @param array
    *
    * @return boolean

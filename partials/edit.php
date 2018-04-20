@@ -56,6 +56,7 @@ if ($booking->exists(['id' => $booking->getId(), 'token' => $booking->getToken()
     <div class="field">
       <div class="control">
         <button class="button is-primary" type="submit">Submit</button>
+        <a class="button is-danger" href="?delete&id=<?php echo $booking->getId(); ?>&token=<?php echo $booking->getToken(); ?>">Cancel booking</a>
       </div>
     </div>
   </form>
