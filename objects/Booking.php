@@ -295,7 +295,7 @@ class Booking {
    *
    * @return array
    */
-  public function getAll($fields = '*') {
+  public function list($fields = '*') {
     $data = $this->client->database->select('bookings', $fields);
     return $data;
   }

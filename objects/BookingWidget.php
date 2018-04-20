@@ -73,7 +73,7 @@
    public function getSlots($singleDay = false) {
      $result;
      $slots = $this->slots;
-     $bookings = $this->booking()->getAll(['day', 'beginTime','endTime']);
+     $bookings = $this->booking()->list(['day', 'beginTime','endTime']);
      $slotsByDay = array();
      $client = $this;
      foreach ($slots as $slot) {
