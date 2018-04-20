@@ -28,7 +28,7 @@
     <div class="container">
       <?php
       include 'partials/message.php';
-      if (isset($_GET['edit'])) {
+      if (isset($_GET['edit']) && isset($_GET['token']) && isset($_GET['id'])) {
         include 'partials/edit.php';
       } else {
           include 'partials/create.php';
