@@ -22,16 +22,6 @@
    public $slots;
 
    /**
-    * @var Timeslot
-    */
-   public $timeslot;
-
-   /**
-    * @var Booking
-    */
-   public $booking;
-
-   /**
     * @param string
     * @param string
     * @param array
@@ -44,6 +34,7 @@
      require_once($this->sitePath . '/config/database.php');
      require_once($this->sitePath . '/objects/Timeslot.php');
      require_once($this->sitePath . '/objects/Booking.php');
+     require_once($this->sitePath . '/objects/Response.php');
 
      $this->database = $database;
 
@@ -64,6 +55,14 @@
    function booking() {
      $booking = new Booking($this);
      return $booking;
+   }
+
+   /**
+    * @return Response
+    */
+   function response() {
+     $response = new Response();
+     return $response;
    }
 
    /**

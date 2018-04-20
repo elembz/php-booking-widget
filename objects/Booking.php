@@ -60,7 +60,7 @@ class Booking {
    * @param string
    */
   public function setEmail($email) {
-    $this->email = $email;
+    $this->email = strtolower($email);
   }
 
   /**
@@ -70,8 +70,9 @@ class Booking {
    */
   public function getEmail($lang) {
     $result = false;
-    if ($lang == 'html') $result = htmlspecialchars($this->email);
-    if ($lang == 'sqlite') $result = $this->email;
+    $email = strtolower($this->email);
+    if ($lang == 'html') $result = htmlspecialchars($email);
+    if ($lang == 'sqlite') $result = $email;
     return $result;
   }
 
@@ -93,13 +94,24 @@ class Booking {
    * @return string
    */
   public function make() {
-    $result = 0;
-    if (!$this->validate()) return false;
-    if (!$this->exists([
+    $response = $this->client->response();
+    if (!$this->validate()) {
+      $response->setSucces(false);
+      $response->setMessage('Insufficient data.');
+    }
+    else if ($this->exists([
       'day' => $this->timeslot->getDay('sqlite'),
       'beginTime' => $this->timeslot->getBeginTime('sqlite'),
       'endTime' => $this->timeslot->getEndTime('sqlite')
     ])) {
+      $response->setSucces(false);
+      $response->setMessage('This slot is already booked. Please choose a different day and/or time.');
+    }
+    else if ($this->exists(['email' => $this->getEmail('sqlite')])) {
+      $response->setSucces(false);
+      $response->setMessage('It seems you have already made a booking. If you would like to change or cancel your booking, please click on the link in your email.');
+    }
+    else {
       $this->client->database->insert('bookings', [
         'name' => $this->getName('sqlite'),
         'email' => $this->getEmail('sqlite'),
@@ -109,9 +121,19 @@ class Booking {
         'token' => bin2hex(random_bytes(70))
       ]);
       $this->id = $this->client->database->id();
-      $result = $this->id;
+      if ($this->id > 0) {
+        $days = getDaysOfTheWeek();
+        $message = 'A booking was made for ' . $this->getName('html');
+        $message .= ' on ' . $days[$this->timeslot->getDay('html')];
+        $message .= ' at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h';
+        $response->setSucces(true);
+        $response->setMessage($message);
+      } else {
+        $response->setSucces(false);
+        $response->setMessage('Something went wrong.');
+      }
     }
-    return $result;
+    return $response;
   }
 
   /**

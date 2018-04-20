@@ -4,9 +4,6 @@ if (isset($_POST['day']) && strlen($_POST['day']) > 0 &&
     isset($_POST['name']) && strlen($_POST['name']) > 0 &&
     isset($_POST['email']) && strlen($_POST['email']) > 0):
 
-  $error = true;
-  $message = 'Something went wrong';
-
   $timeslot = $app->timeslot();
   $timeslot->setDay($_POST['day']);
   $timeslot->setBeginTime(substr($_POST['time'], 0, 4));
@@ -17,16 +14,9 @@ if (isset($_POST['day']) && strlen($_POST['day']) > 0 &&
   $booking->setEmail($_POST['email']);
   $booking->setTimeslot($timeslot);
 
-  if ($booking->exists()) {
-    $error = true;
-    $message = 'It seems you have already made a booking. If you would like to change or cancel your booking, please click on the link in your email.';
-  }
-  else if ($booking->make()) {
-    $error = false;
-    $message = 'A booking was made for ' . $booking->getName('html');
-    $message .= ' on ' . $days[$booking->timeslot->getDay('html')];
-    $message .= ' at ' . substr($booking->timeslot->getBeginTime('html'), 0, 2) . 'h';
-  }
+  $result = $booking->make();
+  $message = $result->getMessage();
+  $error = !$result->isSucces();
 
 ?>
 <article class="message <?php if ($error) echo 'is-danger'; ?>">
