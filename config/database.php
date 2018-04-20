@@ -4,9 +4,11 @@ require 'vendor/autoload.php';
 // Using Medoo namespace
 use Medoo\Medoo;
 
-// Initialize
-$database = new Medoo([
+function setDatabase($name) {
+  $database = new Medoo([
     'database_type' => 'sqlite',
-    'database_file' => 'bookings.db',
-]);
+    'database_file' => $name,
+  ]);
+  return $database;
+}
 ?>

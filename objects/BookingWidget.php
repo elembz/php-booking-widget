@@ -36,7 +36,7 @@
      require_once($this->sitePath . '/objects/Booking.php');
      require_once($this->sitePath . '/objects/Response.php');
 
-     $this->database = $database;
+     $this->database = setDatabase($databaseName);
 
      require_once(__DIR__ . '/../helpers.php');
    }
