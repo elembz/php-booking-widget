@@ -104,6 +104,13 @@ class Booking {
   }
 
   /**
+   * @return string
+   */
+  public function getToken() {
+    return $this->token;
+  }
+
+  /**
    * @param integer
    */
   public function setId($id) {
@@ -115,13 +122,6 @@ class Booking {
    */
   public function getId() {
     return $this->id;
-  }
-
-  /**
-   * @return object
-   */
-  public function getToken() {
-    return $this->token;
   }
 
   /**
@@ -155,8 +155,7 @@ class Booking {
         'endTime'=> $this->timeslot->getEndTime('sqlite'),
         'token' => $this->getToken()
       ]);
-      $this->id = $this->client->database->id();
-      if ($this->id > 0) {
+      if (array_filter($this->client->database->error())) {
         $days = getDaysOfTheWeek();
         $message = 'A booking was made for ' . $this->getName('html');
         $message .= ' on ' . $days[$this->timeslot->getDay('html')];
@@ -188,7 +187,7 @@ class Booking {
       $response->setSucces(false);
       $response->setMessage('This slot is already booked. Please choose a different day and/or time.');
     } else {
-      $data = $this->client->database->update('bookings', [
+      $this->client->database->update('bookings', [
         'name' => $this->getName('sqlite'),
         'email' => $this->getEmail('sqlite'),
         'day' => $this->timeslot->getDay('sqlite'),
@@ -198,7 +197,8 @@ class Booking {
         'id' => $this->getId(),
         'token' => $this->getToken()
       ]);
-      if ($data->rowCount() > 0) {
+
+      if (array_filter($this->client->database->error())) {
         $days = getDaysOfTheWeek();
         $message = 'Thank you, ' . $this->getName('html');
         $message .= '. Your booking was updated to ' . $days[$this->timeslot->getDay('html')];
@@ -214,6 +214,8 @@ class Booking {
   }
 
   /**
+   * @param array
+   *
    * @return boolean
    */
   public function validate($fields = ['day', 'beginTime', 'endTime', 'name', 'email']) {
