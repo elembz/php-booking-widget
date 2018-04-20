@@ -41,10 +41,16 @@ class Timeslot
   }
 
   /**
-   * @return string
+   * @param string
+   *
+   * @return integer
    */
-  public function getDay() {
-    return intval($this->day);
+  public function getDay($lang) {
+    $result = false;
+    $day = intval($this->day);
+    if ($lang == 'html') $result = htmlspecialchars($day);
+    if ($lang == 'sqlite') $result = $day;
+    return $result;
   }
 
   /**
@@ -55,10 +61,15 @@ class Timeslot
   }
 
   /**
+   * @param string
+   *
    * @return string
    */
-  public function getBeginTime() {
-    return $this->beginTime;
+  public function getBeginTime($lang) {
+    $result = false;
+    if ($lang == 'html') $result = htmlspecialchars($this->beginTime);
+    if ($lang == 'sqlite') $result = $this->beginTime;
+    return $result;
   }
 
   /**
@@ -69,35 +80,15 @@ class Timeslot
   }
 
   /**
+   * @param string
+   *
    * @return string
    */
-  public function getEndTime() {
-    return $this->endTime;
-  }
-
-  /**
-   * @return boolean
-   */
-  public function isAvailable() {
+  public function getEndTime($lang) {
     $result = false;
-    $slots = $this->client->slots;
-    $bookings = $this->client->booking()->getAll(['beginTime','endTime']);
-    $day = $this->getDay();
-    $beginTime = $this->getBeginTime();
-    $endTime = $this->getEndTime();
-
-    foreach($slots as $slot) {
-      if (
-        array_search( $day, $slot['days'] ) !== false &&
-        array_search( [$beginTime, $endTime], $bookings) == false &&
-        $slot->beginTime == $beginTime &&
-        $slot->endTime == $endTime ) {
-          $result = true;
-      }
-    }
-
+    if ($lang == 'html') $result = htmlspecialchars($this->endTime);
+    if ($lang == 'sqlite') $result = $this->endTime;
     return $result;
   }
-
 }
 ?>

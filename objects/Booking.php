@@ -45,10 +45,15 @@ class Booking {
   }
 
   /**
+   * @param string
+   *
    * @return string
    */
-  public function getName() {
-    return $this->name;
+  public function getName($lang) {
+    $result = false;
+    if ($lang == 'html') $result = htmlspecialchars($this->name);
+    if ($lang == 'sqlite') $result = $this->name;
+    return $result;
   }
 
   /**
@@ -59,10 +64,15 @@ class Booking {
   }
 
   /**
+   * @param string
+   *
    * @return string
    */
-  public function getEmail() {
-    return $this->email;
+  public function getEmail($lang) {
+    $result = false;
+    if ($lang == 'html') $result = htmlspecialchars($this->email);
+    if ($lang == 'sqlite') $result = $this->email;
+    return $result;
   }
 
   /**
@@ -86,16 +96,16 @@ class Booking {
     $result = 0;
     if (!$this->validate()) return false;
     if (!$this->exists([
-      'day' => $this->timeslot->getDay(),
-      'beginTime' => $this->timeslot->getBeginTime(),
-      'endTime' => $this->timeslot->getEndTime()
+      'day' => $this->timeslot->getDay('sqlite'),
+      'beginTime' => $this->timeslot->getBeginTime('sqlite'),
+      'endTime' => $this->timeslot->getEndTime('sqlite')
     ])) {
       $this->client->database->insert('bookings', [
-        'name' => $this->getName(),
-        'email' => $this->getEmail(),
-        'day' => $this->timeslot->getDay(),
-        'beginTime' => $this->timeslot->getBeginTime(),
-        'endTime'=> $this->timeslot->getEndTime(),
+        'name' => $this->getName('sqlite'),
+        'email' => $this->getEmail('sqlite'),
+        'day' => $this->timeslot->getDay('sqlite'),
+        'beginTime' => $this->timeslot->getBeginTime('sqlite'),
+        'endTime'=> $this->timeslot->getEndTime('sqlite'),
         'token' => bin2hex(random_bytes(70))
       ]);
       $this->id = $this->client->database->id();
@@ -111,7 +121,7 @@ class Booking {
     if (!is_int($this->timeslot->day) || $this->timeslot->day > 6 || $this->timeslot->day < 0) return 'false';
     elseif (
       !is_numeric($this->timeslot->beginTime) ||
-      strlen($this->timeslot->endTime) != 4 ||
+      strlen($this->timeslot->beginTime) != 4 ||
       intval($this->timeslot->beginTime) > 2400 ||
       intval($this->timeslot->beginTime) < 0) {
         return false;
@@ -138,7 +148,7 @@ class Booking {
    * @return boolean
    */
   public function exists($details = false) {
-    if (!$details) $details = ['email' => $this->getEmail()];
+    if (!$details) $details = ['email' => $this->getEmail('sqlite')];
     $data = $this->client->database->get('bookings', [
       'name','email','day','beginTime','endTime'
     ], $details);
