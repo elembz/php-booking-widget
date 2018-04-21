@@ -45,22 +45,30 @@ $klein->respond('PUT', $app->sitePath . '/booking/edit', function ($request) {
 
   $booking = $app->booking();
   $booking->setId($request->id);
-  $booking->setToken($request->token);
-  $booking->get();
-  $booking->setTimeslot($timeslot);
+  $booking->setToken(getBearerToken());
 
-  $result = $booking->update();
+  if ($booking->exists(['id' => $booking->getId(), 'token' => $booking->getToken()])) {
+    $booking->get();
+    $booking->setTimeslot($timeslot);
 
-  echo json_response([
-    'succes' => $result->isSucces(),
-    'message' => $result->getMessage()
-  ]);
+    $result = $booking->update();
+    echo json_response([
+      'succes' => $result->isSucces(),
+      'message' => $result->getMessage()
+    ]);
+  } else {
+    echo json_response([
+      'succes' => false,
+      'message' => 'Booking could not be found'
+    ]);
+  }
+
 });
 
 $klein->respond('DELETE', $app->sitePath . '/booking/delete', function ($request) {
   $app = $GLOBALS['app'];
   $booking = $app->booking();
-  $booking->setToken($request->token);
+  $booking->setToken(getBearerToken());
   $booking->setId($request->id);
   if ($booking->exists(['id' => $booking->getId(), 'token' => $booking->getToken()])) {
     $result = $booking->cancel();
