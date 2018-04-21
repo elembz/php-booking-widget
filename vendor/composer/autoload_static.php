@@ -11,12 +11,20 @@ class ComposerStaticInit576d93a4eb38ff7fca36dd300a725afc
         array (
             'Medoo\\' => 6,
         ),
+        'K' => 
+        array (
+            'Klein\\' => 6,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
         'Medoo\\' => 
         array (
             0 => __DIR__ . '/..' . '/catfan/medoo/src',
+        ),
+        'Klein\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/klein/klein/src/Klein',
         ),
     );
 

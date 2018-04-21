@@ -31,10 +31,10 @@
      $this->sitePath = $sitePath;
      $this->slots = $slots;
 
-     require_once($this->sitePath . '/config/database.php');
-     require_once($this->sitePath . '/objects/Timeslot.php');
-     require_once($this->sitePath . '/objects/Booking.php');
-     require_once($this->sitePath . '/objects/Response.php');
+     require_once(__DIR__ . '/../config/database.php');
+     require_once(__DIR__ . '/../objects/Timeslot.php');
+     require_once(__DIR__ . '/../objects/Booking.php');
+     require_once(__DIR__ . '/../objects/Response.php');
 
      $this->database = setDatabase($databaseName);
 
