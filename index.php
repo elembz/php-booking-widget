@@ -2,8 +2,9 @@
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/objects/BookingWidget.php';
+require_once __DIR__ . '/config/settings.php';
 
-$GLOBALS['app'] = new BookingWidget('/timeslot-booking-widget', 'bookings.db', json_decode(file_get_contents(__DIR__ . '/config/slots.json'), true));
+$GLOBALS['app'] = new BookingWidget($settings['path'], $settings['database'], json_decode(file_get_contents($settings['slots']), true));
 
 $klein = new \Klein\Klein();
 
