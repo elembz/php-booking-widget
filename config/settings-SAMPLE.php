@@ -1,4 +1,5 @@
 <?php
+// rename this file to settings.php
 $settings = [
   'path' => '/',
   'database' => 'bookings.db',
