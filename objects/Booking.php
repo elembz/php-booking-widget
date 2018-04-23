@@ -194,8 +194,7 @@ class Booking {
         'beginTime' => $this->timeslot->getBeginTime('sqlite'),
         'endTime'=> $this->timeslot->getEndTime('sqlite')
       ],[
-        'id' => $this->getId(),
-        'token' => $this->getToken()
+        'id' => $this->getId()
       ]);
 
       if (array_filter($this->client->database->error())) {
@@ -301,8 +300,8 @@ class Booking {
       $this->name = $data['name'];
       $this->email = $data['email'];
       $this->timeslot->setDay(intval($data['day']));
-      $this->timeslot->setBeginTime(intval($data['beginTime']));
-      $this->timeslot->setEndTime(intval($data['endTime']));
+      $this->timeslot->setBeginTime($data['beginTime']);
+      $this->timeslot->setEndTime($data['endTime']);
       return true;
     }
     return $data;
