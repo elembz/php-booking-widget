@@ -284,27 +284,30 @@ class Booking {
   }
 
   /**
-   * @param integer
-   *
-   * @return array
+   * @return object
    */
   public function get() {
+    $response = $this->client->response();
     $data = $this->client->database->get('bookings', [
       'id', 'name','email','day','beginTime','endTime'
     ],[
       'id' => $this->id
     ]);
-    if ($data !== false) {
-      $this->timeslot = $this->client->timeslot();
-      $this->id = intval($data['id']);
-      $this->name = $data['name'];
-      $this->email = $data['email'];
+    if (array_filter($this->client->database->error())) {
+      $this->setTimeslot($this->client->timeslot());
+      $this->setId(intval($data['id']));
+      $this->setName($data['name']);
+      $this->setEmail($data['email']);
       $this->timeslot->setDay(intval($data['day']));
       $this->timeslot->setBeginTime($data['beginTime']);
       $this->timeslot->setEndTime($data['endTime']);
-      return true;
+      $response->setSucces(1);
+      $response->setMessage($this);
+    } else {
+      $response->setSucces(false);
+      $response->setMessage('Something went wrong.');
     }
-    return $data;
+    return $response;
   }
 
   /**

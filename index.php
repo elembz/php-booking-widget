@@ -18,6 +18,27 @@ $klein->respond('GET', $app->sitePath . '/slots/[:day]', function ($request) {
   echo json_response($app->getSlots($request->day));
 });
 
+$klein->respond('GET', $app->sitePath . '/booking/[:id]', function ($request) {
+  $app = $GLOBALS['app'];
+
+  $booking = $app->booking();
+  $booking->setId($request->id);
+  $booking->setToken(getBearerToken());
+
+  if ($booking->exists(['id' => $booking->getId(), 'token' => $booking->getToken()])) {
+    $result = $booking->get();
+    echo json_response([
+      'succes' => $result->isSucces(),
+      'message' => $result->getMessage()
+    ]);
+  } else {
+    echo json_response([
+      'succes' => false,
+      'message' => 'Booking could not be found'
+    ]);
+  }
+});
+
 
 $klein->respond('POST', $app->sitePath . '/booking/create', function ($request) {
   $app = $GLOBALS['app'];
