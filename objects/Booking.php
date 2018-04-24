@@ -156,12 +156,9 @@ class Booking {
         'token' => $this->getToken()
       ]);
       if (array_filter($this->client->database->error())) {
-        $days = getDaysOfTheWeek();
-        $message = 'A booking was made for ' . $this->getName('html');
-        $message .= ' on ' . $days[$this->timeslot->getDay('html')];
-        $message .= ' at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h';
-        $response->setSucces(true);
-        $response->setMessage($message);
+        $this->id = $this->client->database->id();
+        $response = $this->sendMailToAdmin();
+        if (!$response->isSucces()) $this->cancel();
       } else {
         $response->setSucces(false);
         $response->setMessage('Something went wrong.');
@@ -218,7 +215,7 @@ class Booking {
   public function cancel() {
     $response = $this->client->response();
     $this->client->database->delete('bookings', [
-      'id' => $this->id
+      'id' => $this->getId()
     ]);
     if (array_filter($this->client->database->error())) {
       $response->setSucces(true);
@@ -308,6 +305,19 @@ class Booking {
       $response->setMessage('Something went wrong.');
     }
     return $response;
+  }
+
+  /**
+   * @return object
+   */
+  public function sendMailToAdmin() {
+    $days = getDaysOfTheWeek();
+    $address = ['email' => $this->client->admin, 'Bookings'];
+    $subject = 'A booking was made';
+    $message = 'A booking was made for ' . $this->getName('html');
+    $message .= ' on ' . $days[$this->timeslot->getDay('html')];
+    $message .= ' at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h';
+    return $this->client->sendEmail($address, $subject, $message);
   }
 
   /**

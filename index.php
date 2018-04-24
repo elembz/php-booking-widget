@@ -4,9 +4,15 @@ require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/objects/BookingWidget.php';
 require_once __DIR__ . '/config/settings.php';
 
-$GLOBALS['app'] = new BookingWidget($settings['path'], $settings['database'], json_decode(file_get_contents($settings['slots']), true));
-
 $klein = new \Klein\Klein();
+
+$GLOBALS['app'] = new BookingWidget(
+  $settings['path'],
+  $settings['database'],
+  json_decode(file_get_contents($settings['slots']), true),
+  $settings['admin'],
+  $settings['mailServer']
+);
 
 $klein->respond('GET', $app->sitePath . '/slots', function () {
   $app = $GLOBALS['app'];
