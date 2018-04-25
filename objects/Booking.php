@@ -156,9 +156,17 @@ class Booking {
         'token' => $this->getToken()
       ]);
       if (array_filter($this->client->database->error())) {
-        $this->id = $this->client->database->id();
-        $response = $this->sendMailToAdmin();
-        if (!$response->isSucces()) $this->cancel();
+        if ($this->client->mailServer) {
+          $this->id = $this->client->database->id();
+          $response = $this->sendMailToAdmin();
+          if (!$response->isSucces()) $this->cancel();
+        } else {
+          $message = 'A booking was made for ' . $this->getName('html');
+          $message .= ' on ' . $days[$this->timeslot->getDay('html')];
+          $message .= ' at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h';
+          $response->setSucces(true);
+          $response->setMessage($message);
+        }
       } else {
         $response->setSucces(false);
         $response->setMessage('Something went wrong.');
