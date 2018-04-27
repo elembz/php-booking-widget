@@ -7,11 +7,14 @@ require_once __DIR__ . '/config/settings.php';
 $klein = new \Klein\Klein();
 
 $GLOBALS['app'] = new BookingWidget(
+  $settings['name'],
+  $settings['url'],
   $settings['path'],
   $settings['database'],
   json_decode(file_get_contents($settings['slots']), true),
-  $settings['admin'],
-  $settings['mailServer']
+  $settings['adminEmail'],
+  $settings['mailServer'],
+  $settings['testMode']
 );
 
 $klein->respond('GET', $app->sitePath . '/slots', function () {

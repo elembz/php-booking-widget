@@ -156,14 +156,19 @@ class Booking {
         'token' => $this->getToken()
       ]);
       if (array_filter($this->client->database->error())) {
+        $message = 'Thank you, ' . $this->getName('html') . '. A booking was made ';
+        $message .= 'on ' . $days[$this->timeslot->getDay('html')] . ' ';
+        $message .= 'at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h';
         if ($this->client->mailServer) {
           $this->id = $this->client->database->id();
           $response = $this->sendMailToAdmin();
-          if (!$response->isSucces()) $this->cancel();
+          if (!$response->isSucces()) {
+            $this->cancel();
+          } else {
+            $response = $this->sendConfirmationMail();
+            $response->setMessage($message);
+          }
         } else {
-          $message = 'A booking was made for ' . $this->getName('html');
-          $message .= ' on ' . $days[$this->timeslot->getDay('html')];
-          $message .= ' at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h';
           $response->setSucces(true);
           $response->setMessage($message);
         }
@@ -320,11 +325,24 @@ class Booking {
    */
   public function sendMailToAdmin() {
     $days = getDaysOfTheWeek();
-    $address = ['email' => $this->client->admin, 'Bookings'];
+    $address = ['email' => $this->client->getAdminEmail(), 'Bookings'];
     $subject = 'A booking was made';
     $message = 'A booking was made for ' . $this->getName('html');
     $message .= ' on ' . $days[$this->timeslot->getDay('html')];
     $message .= ' at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h';
+    return $this->client->sendEmail($address, $subject, $message);
+  }
+
+  public function sendConfirmationMail() {
+    $days = getDaysOfTheWeek();
+    $address = ['email' => $this->getEmail(), $this->getName()];
+    $subject = 'Booking confirmation';
+    $message = '<p>Hello ' . $this->getName('html') . ',</p>';
+    $message .= '<p>You have made a booking on ' . $days[$this->timeslot->getDay('html')];
+    $message .= ' at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h.<br />';
+    $message .= 'If you would like to edit or cancel your booking,';
+    $message .= ' please click <a href=' . $this->client->getSiteUrl() . $this->client->getSitePath() . '/edit?id=' . $this->getId() . '&token=' . $this->getToken() .'>here</a></p>';
+    $message .= '<p>Thank you,</p><p>' . $this->client->getAppName() . '</p>';
     return $this->client->sendEmail($address, $subject, $message);
   }
 
