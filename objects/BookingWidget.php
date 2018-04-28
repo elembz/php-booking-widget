@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
+use Medoo\Medoo;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 /**
@@ -11,17 +12,17 @@ use PHPMailer\PHPMailer\Exception;
    /**
     * @var string
     */
-   public $appName;
+   private $appName;
 
    /**
     * @var string
     */
-   public $siteUrl;
+   private $siteUrl;
 
    /**
     * @var string
     */
-   public $sitePath;
+   private $sitePath;
 
    /**
     * @var object
@@ -31,22 +32,22 @@ use PHPMailer\PHPMailer\Exception;
    /**
     * @var object
     */
-   public $slots;
+   private $slots;
 
    /**
     * @var string
     */
-   public $adminEmail;
+   private $adminEmail;
 
    /**
     * @var object
     */
-   public $mailServer;
+   private $mailServer;
 
    /**
     * @var boolean
     */
-   public $testMode;
+   private $testMode;
 
    /**
     * @param string
@@ -55,7 +56,6 @@ use PHPMailer\PHPMailer\Exception;
     */
    function __construct($appName, $siteUrl, $sitePath, $databaseName, $slots, $adminEmail, $mailServer = false, $testMode)
    {
-     require_once(__DIR__ . '/../config/database.php');
      require_once(__DIR__ . '/../objects/Timeslot.php');
      require_once(__DIR__ . '/../objects/Booking.php');
      require_once(__DIR__ . '/../objects/Response.php');
@@ -64,7 +64,7 @@ use PHPMailer\PHPMailer\Exception;
      $this->appName = $appName;
      $this->siteUrl = $siteUrl;
      $this->sitePath = $sitePath;
-     $this->database = setDatabase($databaseName);
+     $this->database = new Medoo([ 'database_type' => 'sqlite', 'database_file' => $databaseName ]);
      $this->slots = $slots;
      $this->adminEmail = $adminEmail;
      $this->mailServer = new MailServer;
@@ -77,11 +77,27 @@ use PHPMailer\PHPMailer\Exception;
    }
 
    /**
+    * @return Booking
+    */
+   function booking() {
+     $booking = new Booking($this);
+     return $booking;
+   }
+
+   /**
     * @return Timeslot
     */
    function timeslot() {
      $timeslot = new Timeslot($this);
      return $timeslot;
+   }
+
+   /**
+    * @return Response
+    */
+   function response() {
+     $response = new Response();
+     return $response;
    }
 
    /**
@@ -103,6 +119,13 @@ use PHPMailer\PHPMailer\Exception;
     */
    public function getSitePath() {
      return $this->sitePath;
+   }
+
+   /**
+    * @return object
+    */
+   public function database() {
+     return $this->database;
    }
 
    /**
@@ -139,23 +162,7 @@ use PHPMailer\PHPMailer\Exception;
    }
 
    /**
-    * @return Booking
-    */
-   function booking() {
-     $booking = new Booking($this);
-     return $booking;
-   }
-
-   /**
-    * @return Response
-    */
-   function response() {
-     $response = new Response();
-     return $response;
-   }
-
-   /**
-    * @param string
+    * @param integer
     *
     * @return array
     */
@@ -172,7 +179,14 @@ use PHPMailer\PHPMailer\Exception;
          $slotObject->setDay($day);
          $slotObject->setBeginTime($slot['beginTime']);
          $slotObject->setEndTime($slot['endTime']);
-         $slotsByDay[$day][] = array('slot' => $slotObject, 'availability' => $availability);
+         $slotsByDay[$day][] = [
+           'slot' => [
+             'day' => $slotObject->getDay(),
+             'beginTime' => $slotObject->getBeginTime(),
+             'endTime' => $slotObject->getEndTime()
+           ],
+           'availability' => $availability
+         ];
        }
      }
      $result = $slotsByDay;
@@ -182,7 +196,6 @@ use PHPMailer\PHPMailer\Exception;
 
    /**
     * @param array
-    * @param string
     * @param string
     * @param string
     *

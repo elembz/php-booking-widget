@@ -8,12 +8,12 @@ class Response {
   /**
    * @var string
    */
-  public $type;
+  private $type;
 
   /**
    * @var string
    */
-  public $message;
+  private $message;
 
   /**
    * @param boolean

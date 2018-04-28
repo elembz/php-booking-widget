@@ -14,17 +14,17 @@ class Timeslot
   /**
    * @var int
    */
-  public $day;
+  private $day;
 
   /**
    * @var int
    */
-  public $beginTime;
+  private $beginTime;
 
   /**
    * @var int
    */
-  public $endTime;
+  private $endTime;
 
   /**
    * @param object
@@ -45,8 +45,8 @@ class Timeslot
    *
    * @return integer
    */
-  public function getDay($lang) {
-    $result = false;
+  public function getDay($lang = false) {
+    $result = $this->day;
     $day = intval($this->day);
     if ($lang == 'html') $result = htmlspecialchars($day);
     if ($lang == 'sqlite') $result = $day;
@@ -65,8 +65,8 @@ class Timeslot
    *
    * @return string
    */
-  public function getBeginTime($lang) {
-    $result = false;
+  public function getBeginTime($lang = false) {
+    $result = strval($this->beginTime);
     if ($lang == 'html') $result = htmlspecialchars($this->beginTime);
     if ($lang == 'sqlite') $result = $this->beginTime;
     return $result;
@@ -84,10 +84,28 @@ class Timeslot
    *
    * @return string
    */
-  public function getEndTime($lang) {
-    $result = false;
+  public function getEndTime($lang = false) {
+    $result = strval($this->endTime);
     if ($lang == 'html') $result = htmlspecialchars($this->endTime);
     if ($lang == 'sqlite') $result = $this->endTime;
+    return $result;
+  }
+
+  /**
+   * @return boolean
+   */
+  public function exists() {
+    $result = false;
+    $slots = $this->client->getSlots();
+    $day = $this->getDay();
+    $beginTime = $this->getBeginTime();
+    $endTime = $this->getEndTime();
+    foreach($slots as $slotDay) {
+      foreach($slotDay as $slot) {
+        $slot = $slot['slot'];
+        if ($slot['day'] == $day && $slot['beginTime'] == $beginTime && $slot['endTime'] == $endTime) $result = true;
+      }
+    }
     return $result;
   }
 }

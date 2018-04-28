@@ -4,8 +4,6 @@ require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/objects/BookingWidget.php';
 require_once __DIR__ . '/config/settings.php';
 
-$klein = new \Klein\Klein();
-
 $GLOBALS['app'] = new BookingWidget(
   $settings['name'],
   $settings['url'],
@@ -17,17 +15,19 @@ $GLOBALS['app'] = new BookingWidget(
   $settings['testMode']
 );
 
-$klein->respond('GET', $app->sitePath . '/slots', function () {
+$klein = new \Klein\Klein();
+
+$klein->respond('GET', $app->getSitePath() . '/slots', function () {
   $app = $GLOBALS['app'];
   echo json_response($app->getSlots());
 });
 
-$klein->respond('GET', $app->sitePath . '/slots/[:day]', function ($request) {
+$klein->respond('GET', $app->getSitePath() . '/slots/[:day]', function ($request) {
   $app = $GLOBALS['app'];
   echo json_response($app->getSlots($request->day));
 });
 
-$klein->respond('GET', $app->sitePath . '/booking/[:id]', function ($request) {
+$klein->respond('GET', $app->getSitePath() . '/booking/[:id]', function ($request) {
   $app = $GLOBALS['app'];
 
   $booking = $app->booking();
@@ -36,10 +36,20 @@ $klein->respond('GET', $app->sitePath . '/booking/[:id]', function ($request) {
 
   if ($booking->exists(['id' => $booking->getId(), 'token' => $booking->getToken()])) {
     $result = $booking->get();
-    echo json_response([
-      'succes' => $result->isSucces(),
-      'message' => $result->getMessage()
-    ]);
+    if ($result->isSucces()) {
+      echo json_response([
+        'succes' => true,
+        'message' => [
+          'id' => $booking->getId(),
+          'name' => $booking->getName(),
+          'email' => $booking->getEmail(),
+          'day' => $booking->timeslot->getDay(),
+          'beginTime' => $booking->timeslot->getBeginTime(),
+          'endTime' => $booking->timeslot->getEndTime(),
+        ]
+      ]);
+    }
+
   } else {
     echo json_response([
       'succes' => false,
@@ -49,7 +59,7 @@ $klein->respond('GET', $app->sitePath . '/booking/[:id]', function ($request) {
 });
 
 
-$klein->respond('POST', $app->sitePath . '/booking/create', function ($request) {
+$klein->respond('POST', $app->getSitePath() . '/booking/create', function ($request) {
   $app = $GLOBALS['app'];
 
   $timeslot = $app->timeslot();
@@ -70,7 +80,7 @@ $klein->respond('POST', $app->sitePath . '/booking/create', function ($request) 
   ]);
 });
 
-$klein->respond('PUT', $app->sitePath . '/booking/edit', function ($request) {
+$klein->respond('PUT', $app->getSitePath() . '/booking/edit', function ($request) {
   $app = $GLOBALS['app'];
 
   $timeslot = $app->timeslot();
@@ -100,7 +110,7 @@ $klein->respond('PUT', $app->sitePath . '/booking/edit', function ($request) {
 
 });
 
-$klein->respond('DELETE', $app->sitePath . '/booking/delete', function ($request) {
+$klein->respond('DELETE', $app->getSitePath() . '/booking/delete', function ($request) {
   $app = $GLOBALS['app'];
   $booking = $app->booking();
   $booking->setToken(getBearerToken());

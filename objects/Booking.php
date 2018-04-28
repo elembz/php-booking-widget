@@ -1,5 +1,4 @@
 <?php
-
 /**
  * The Booking class
  */
@@ -13,17 +12,17 @@ class Booking {
   /**
    * @var integer
    */
-  public $id;
+  private $id;
 
   /**
    * @var string
    */
-  public $name;
+  private $name;
 
   /**
    * @var string
    */
-  public $email;
+  private $email;
 
   /**
    * @var object
@@ -33,7 +32,7 @@ class Booking {
   /**
    * @var string
    */
-  public $token;
+  private $token;
 
   /**
    * @param object
@@ -54,8 +53,8 @@ class Booking {
    *
    * @return string
    */
-  public function getName($lang) {
-    $result = false;
+  public function getName($lang = false) {
+    $result = $this->name;
     if ($lang == 'html') $result = htmlspecialchars($this->name);
     if ($lang == 'sqlite') $result = $this->name;
     return $result;
@@ -73,8 +72,8 @@ class Booking {
    *
    * @return string
    */
-  public function getEmail($lang) {
-    $result = false;
+  public function getEmail($lang = false) {
+    $result = $this->email;
     $email = strtolower($this->email);
     if ($lang == 'html') $result = htmlspecialchars($email);
     if ($lang == 'sqlite') $result = $email;
@@ -118,7 +117,7 @@ class Booking {
   }
 
   /**
-   * @param integer
+   * @return integer
    */
   public function getId() {
     return $this->id;
@@ -159,17 +158,12 @@ class Booking {
         $message = 'Thank you, ' . $this->getName('html') . '. A booking was made ';
         $message .= 'on ' . $days[$this->timeslot->getDay('html')] . ' ';
         $message .= 'at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h';
-        if ($this->client->mailServer) {
-          $this->id = $this->client->database->id();
-          $response = $this->sendMailToAdmin();
-          if (!$response->isSucces()) {
-            $this->cancel();
-          } else {
-            $response = $this->sendConfirmationMail();
-            $response->setMessage($message);
-          }
+        $this->id = $this->client->database->id();
+        $response = $this->sendMailToAdmin();
+        if (!$response->isSucces()) {
+          $this->cancel();
         } else {
-          $response->setSucces(true);
+          $response = $this->sendConfirmationMail();
           $response->setMessage($message);
         }
       } else {
@@ -206,12 +200,11 @@ class Booking {
       ],[
         'id' => $this->getId()
       ]);
-
       if (array_filter($this->client->database->error())) {
         $days = getDaysOfTheWeek();
         $message = 'Thank you, ' . $this->getName('html');
-        $message .= '. Your booking was updated to ' . $days[$this->timeslot->getDay('html')];
-        $message .= ' at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h';
+        $message .= '. Your booking was updated to ' . $days[$this->timeslot->getDay()] . ' ';
+        $message .= 'at ' . substr($this->timeslot->getBeginTime(), 0, 2) . 'h.';
         $response->setSucces(true);
         $response->setMessage($message);
       } else {
@@ -246,33 +239,37 @@ class Booking {
    * @return boolean
    */
   public function validate($fields = ['day', 'beginTime', 'endTime', 'name', 'email']) {
-    if (
+    $slots = $this->client->getSlots();
+    if (!$this->timeslot->exists()) {
+      return false;
+    }
+    elseif (
       array_search('day', $fields) !== false &&
-      !is_int($this->timeslot->day) ||
-      $this->timeslot->day > 6 ||
-      $this->timeslot->day < 0) {
-        return 'false';
+      !is_int($this->timeslot->getDay()) ||
+      $this->timeslot->getDay() > 6 ||
+      $this->timeslot->getDay() < 0) {
+        return false;
       }
     elseif (
       array_search('beginTime', $fields) !== false &&
-      !is_numeric($this->timeslot->beginTime) ||
-      strlen($this->timeslot->beginTime) != 4 ||
-      intval($this->timeslot->beginTime) > 2400 ||
-      intval($this->timeslot->beginTime) < 0) {
+      !is_numeric($this->timeslot->getBeginTime()) ||
+      strlen($this->timeslot->getBeginTime()) != 4 ||
+      intval($this->timeslot->getBeginTime()) > 2400 ||
+      intval($this->timeslot->getBeginTime()) < 0) {
         return false;
       }
     elseif (
       array_search('endTime', $fields) !== false &&
-      !is_numeric($this->timeslot->endTime) ||
-      strlen($this->timeslot->endTime) != 4 ||
-      $this->timeslot->endTime > 2400 ||
-      $this->timeslot->endTime < 0) {
+      !is_numeric($this->timeslot->getEndTime()) ||
+      strlen($this->timeslot->getEndTime()) != 4 ||
+      $this->timeslot->getEndTime() > 2400 ||
+      $this->timeslot->getEndTime() < 0) {
         return false;
       }
-    elseif (array_search('name', $fields) !== false && strlen($this->name) <= 0) {
+    elseif (array_search('name', $fields) !== false && strlen($this->getName()) <= 0) {
       return false;
     }
-    elseif (array_search('email', $fields) !== false && strlen($this->email) <= 0) {
+    elseif (array_search('email', $fields) !== false && strlen($this->getEmail()) <= 0) {
       return false;
     }
     else return true;
@@ -312,7 +309,7 @@ class Booking {
       $this->timeslot->setBeginTime($data['beginTime']);
       $this->timeslot->setEndTime($data['endTime']);
       $response->setSucces(1);
-      $response->setMessage($this);
+      $response->setMessage('Use other methods to get specific booking data.');
     } else {
       $response->setSucces(false);
       $response->setMessage('Something went wrong.');
@@ -329,7 +326,7 @@ class Booking {
     $subject = 'A booking was made';
     $message = 'A booking was made for ' . $this->getName('html');
     $message .= ' on ' . $days[$this->timeslot->getDay('html')];
-    $message .= ' at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h';
+    $message .= ' at ' . substr($this->timeslot->getBeginTime('html'), 0, 2) . 'h.';
     return $this->client->sendEmail($address, $subject, $message);
   }
 
